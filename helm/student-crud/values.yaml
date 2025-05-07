@@ -1,0 +1,32 @@
+replicaCount: 2
+
+backend:
+  image:
+    repository: student-crud-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 3000
+
+frontend:
+  image:
+    repository: student-crud-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: NodePort
+    port: 80
+    nodePort: 30080
+
+mongodb:
+  enabled: true
+  image:
+    repository: mongo
+    tag: 4.4
+  auth:
+    rootUser: admin
+    rootPassword: admin123
+  persistence:
+    enabled: true
+    size: 1Gi

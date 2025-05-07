@@ -1,0 +1,90 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test-backend:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+    
+    - name: Install dependencies
+      run: |
+        cd backend
+        npm install
+    
+    - name: Run tests
+      run: |
+        cd backend
+        npm test
+
+  build-test-frontend:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+    
+    - name: Install dependencies
+      run: |
+        cd frontend
+        npm install
+    
+    - name: Run tests
+      run: |
+        cd frontend
+        npm test
+
+  build-docker-images:
+    needs: [build-test-backend, build-test-frontend]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Login to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_TOKEN }}
+    
+    - name: Build and push backend
+      run: |
+        cd backend
+        docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/student-crud-backend:latest .
+        docker push ${{ secrets.DOCKER_HUB_USERNAME }}/student-crud-backend:latest
+    
+    - name: Build and push frontend
+      run: |
+        cd frontend
+        docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/student-crud-frontend:latest .
+        docker push ${{ secrets.DOCKER_HUB_USERNAME }}/student-crud-frontend:latest
+
+  deploy-to-kubernetes:
+    needs: build-docker-images
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Install kubectl
+      uses: azure/setup-kubectl@v1
+    
+    - name: Install Helm
+      uses: azure/setup-helm@v1
+    
+    - name: Deploy to Kubernetes
+      run: |
+        helm upgrade --install student-crud ./helm/student-crud \
+          --set backend.image.repository=${{ secrets.DOCKER_HUB_USERNAME }}/student-crud-backend \
+          --set frontend.image.repository=${{ secrets.DOCKER_HUB_USERNAME }}/student-crud-frontend

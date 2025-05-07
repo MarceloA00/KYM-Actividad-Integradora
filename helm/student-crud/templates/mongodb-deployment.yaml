@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-mongodb
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-mongodb
+    spec:
+      containers:
+      - name: mongodb
+        image: "{{ .Values.mongodb.image.repository }}:{{ .Values.mongodb.image.tag }}"
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGO_INITDB_DATABASE
+          value: "studentsdb"
+        - name: MONGO_INITDB_ROOT_USERNAME
+          value: "{{ .Values.mongodb.auth.rootUser }}"
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          value: "{{ .Values.mongodb.auth.rootPassword }}"
+        volumeMounts:
+        - name: mongodb-data
+          mountPath: /data/db
+      volumes:
+      - name: mongodb-data
+        {{- if .Values.mongodb.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ .Release.Name }}-mongodb-pvc
+        {{- else }}
+        emptyDir: {}
+        {{- end }}
