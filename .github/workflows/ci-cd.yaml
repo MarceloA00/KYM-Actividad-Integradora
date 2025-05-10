@@ -6,100 +6,85 @@ on:
   pull_request:
     branches: [ main ]
 
-env:
-  NODE_VERSION: '16' # Updated from 14 to 16 (14 is nearing EOL)
-  DOCKER_HUB_REPO: ${{ secrets.DOCKER_HUB_USERNAME }}/student-crud
-
 jobs:
   build-test-backend:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3 # Updated to v3
+    - uses: actions/checkout@v2
     
     - name: Set up Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v2
       with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
+        node-version: '14'
     
     - name: Install dependencies
-      working-directory: ./backend
-      run: npm ci # Using ci for cleaner installs in CI
+      run: |
+        cd backend
+        npm install
     
     - name: Run tests
-      working-directory: ./backend
-      run: npm run test:coverage # Now using coverage
-    
-    - name: Upload coverage report
-      uses: actions/upload-artifact@v3
-      with:
-        name: backend-coverage
-        path: backend/coverage
+      run: |
+        cd backend
+        npm test
 
   build-test-frontend:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v2
     
     - name: Set up Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v2
       with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
+        node-version: '14'
     
     - name: Install dependencies
-      working-directory: ./frontend
-      run: npm ci
+      run: |
+        cd frontend
+        npm install
     
     - name: Run tests
-      working-directory: ./frontend
-      run: npm run test:coverage
-    
-    - name: Upload coverage report
-      uses: actions/upload-artifact@v3
-      with:
-        name: frontend-coverage
-        path: frontend/coverage
+      run: |
+        cd frontend
+        npm test
 
   build-docker-images:
     needs: [build-test-backend, build-test-frontend]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v2
     
     - name: Login to Docker Hub
-      uses: docker/login-action@v2
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_TOKEN }}
     
     - name: Build and push backend
-      working-directory: ./backend
       run: |
-        docker build -t ${{ env.DOCKER_HUB_REPO }}-backend:latest .
-        docker push ${{ env.DOCKER_HUB_REPO }}-backend:latest
+        cd backend
+        docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/estudiantes-crud-backend:latest .
+        docker push ${{ secrets.DOCKER_HUB_USERNAME }}/estudiantes-crud-backend:latest
     
     - name: Build and push frontend
-      working-directory: ./frontend
       run: |
-        docker build -t ${{ env.DOCKER_HUB_REPO }}-frontend:latest .
-        docker push ${{ env.DOCKER_HUB_REPO }}-frontend:latest
+        cd frontend
+        docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/estudiantes-crud-frontend:latest .
+        docker push ${{ secrets.DOCKER_HUB_USERNAME }}/estudiantes-crud-frontend:latest
 
   deploy-to-kubernetes:
     needs: build-docker-images
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v2
     
     - name: Install kubectl
-      uses: azure/setup-kubectl@v3
+      uses: azure/setup-kubectl@v1
     
     - name: Install Helm
-      uses: azure/setup-helm@v3
+      uses: azure/setup-helm@v1
     
     - name: Deploy to Kubernetes
       run: |
-        helm upgrade --install student-crud ./helm/student-crud \
-          --set backend.image.repository=${{ env.DOCKER_HUB_REPO }}-backend \
-          --set frontend.image.repository=${{ env.DOCKER_HUB_REPO }}-frontend \
-          --atomic --wait
+        helm upgrade --install estudiantes-crud ./helm/estudiantes-crud \
+          --set backend.image.repository=${{ secrets.DOCKER_HUB_USERNAME }}/estudiantes-crud-backend \
+          --set frontend.image.repository=${{ secrets.DOCKER_HUB_USERNAME }}/estudiantes-crud-frontend
