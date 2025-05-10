@@ -1,9 +1,5 @@
 const request = require('supertest');
-const app = require('./app');
-
-beforeAll(() => {
-  mongoose.set('strictQuery', false);
-});
+const app = require('../app');
 
 describe('Health Check', () => {
   it('should return status UP', async () => {

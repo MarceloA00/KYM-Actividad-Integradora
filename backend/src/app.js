@@ -19,7 +19,7 @@ app.use(cors({
 app.use(express.json());
 
 // Conexión a MongoDB
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV !== 'test' && mongoose.connection.readyState === 0) {
 mongoose.connect('mongodb://admin:password@student-crud-mongodb:27017/studentsdb?authSource=admin', {
     useNewUrlParser: true,
     useUnifiedTopology: true,

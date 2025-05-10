@@ -1,6 +1,7 @@
 const request = require('supertest');
 const app = require('../app');
 const Student = require('../models/Student');
+const mongoose = require('mongoose');
 
 beforeAll(() => {
   mongoose.set('strictQuery', false);
