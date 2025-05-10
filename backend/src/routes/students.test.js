@@ -2,6 +2,10 @@ const request = require('supertest');
 const app = require('../app');
 const Student = require('../models/Student');
 
+beforeAll(() => {
+  mongoose.set('strictQuery', false);
+});
+
 describe('Student Routes', () => {
   beforeEach(async () => {
     await Student.deleteMany({});

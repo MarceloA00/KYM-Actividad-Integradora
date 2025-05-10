@@ -4,6 +4,10 @@ const Student = require('./Student');
 
 let mongoServer;
 
+beforeAll(() => {
+  mongoose.set('strictQuery', false);
+});
+
 beforeAll(async () => {
   mongoServer = await MongoMemoryServer.create();
   const uri = mongoServer.getUri();

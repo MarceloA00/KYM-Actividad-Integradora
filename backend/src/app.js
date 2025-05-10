@@ -19,6 +19,7 @@ app.use(cors({
 app.use(express.json());
 
 // Conexión a MongoDB
+if (process.env.NODE_ENV !== 'test') {
 mongoose.connect('mongodb://admin:password@student-crud-mongodb:27017/studentsdb?authSource=admin', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -29,6 +30,7 @@ mongoose.connect('mongodb://admin:password@student-crud-mongodb:27017/studentsdb
     console.error('MongoDB connection error:', err);
     process.exit(1); // Exit if DB connection fails
   });
+}
 // Rutas
 app.use('/api/students', studentRoutes);
 
