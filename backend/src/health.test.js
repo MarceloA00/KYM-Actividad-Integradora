@@ -1,5 +1,5 @@
 const request = require('supertest');
-const app = require('../app');
+const app = require('/app'); // Adjust path as needed
 
 describe('Health Check', () => {
   it('should return status UP', async () => {

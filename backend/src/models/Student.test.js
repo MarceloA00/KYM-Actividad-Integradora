@@ -4,23 +4,6 @@ const Student = require('./Student');
 const request = require('supertest');
 const app = require('../app');
 
-let mongoServer;
-
-beforeAll(() => {
-  mongoose.set('strictQuery', false);
-});
-
-beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
-  const uri = mongoServer.getUri();
-  await mongoose.connect(uri);
-});
-
-afterAll(async () => {
-  await mongoose.disconnect();
-  await mongoServer.stop();
-});
-
 describe('Student Model', () => {
   it('should create and save a student successfully', async () => {
     const studentData = {
