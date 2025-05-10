@@ -27,7 +27,6 @@ jobs:
         run: npm ci
       - working-directory: ./backend
         run: |
-          npm install mongodb-memory-server@8.10.0
           npm test
 
   build-test-frontend:
