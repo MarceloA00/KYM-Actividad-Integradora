@@ -6,85 +6,100 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  NODE_VERSION: '16' # Updated from 14 to 16 (14 is nearing EOL)
+  DOCKER_HUB_REPO: ${{ secrets.DOCKER_HUB_USERNAME }}/student-crud
+
 jobs:
   build-test-backend:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3 # Updated to v3
     
     - name: Set up Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
-        node-version: '14'
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
     
     - name: Install dependencies
-      run: |
-        cd backend
-        npm install
+      working-directory: ./backend
+      run: npm ci # Using ci for cleaner installs in CI
     
     - name: Run tests
-      run: |
-        cd backend
-        npm test
+      working-directory: ./backend
+      run: npm run test:coverage # Now using coverage
+    
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v3
+      with:
+        name: backend-coverage
+        path: backend/coverage
 
   build-test-frontend:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     
     - name: Set up Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
-        node-version: '14'
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
     
     - name: Install dependencies
-      run: |
-        cd frontend
-        npm install
+      working-directory: ./frontend
+      run: npm ci
     
     - name: Run tests
-      run: |
-        cd frontend
-        npm test
+      working-directory: ./frontend
+      run: npm run test:coverage
+    
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v3
+      with:
+        name: frontend-coverage
+        path: frontend/coverage
 
   build-docker-images:
     needs: [build-test-backend, build-test-frontend]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     
     - name: Login to Docker Hub
-      uses: docker/login-action@v1
+      uses: docker/login-action@v2
       with:
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_TOKEN }}
     
     - name: Build and push backend
+      working-directory: ./backend
       run: |
-        cd backend
-        docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/student-crud-backend:latest .
-        docker push ${{ secrets.DOCKER_HUB_USERNAME }}/student-crud-backend:latest
+        docker build -t ${{ env.DOCKER_HUB_REPO }}-backend:latest .
+        docker push ${{ env.DOCKER_HUB_REPO }}-backend:latest
     
     - name: Build and push frontend
+      working-directory: ./frontend
       run: |
-        cd frontend
-        docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/student-crud-frontend:latest .
-        docker push ${{ secrets.DOCKER_HUB_USERNAME }}/student-crud-frontend:latest
+        docker build -t ${{ env.DOCKER_HUB_REPO }}-frontend:latest .
+        docker push ${{ env.DOCKER_HUB_REPO }}-frontend:latest
 
   deploy-to-kubernetes:
     needs: build-docker-images
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     
     - name: Install kubectl
-      uses: azure/setup-kubectl@v1
+      uses: azure/setup-kubectl@v3
     
     - name: Install Helm
-      uses: azure/setup-helm@v1
+      uses: azure/setup-helm@v3
     
     - name: Deploy to Kubernetes
       run: |
         helm upgrade --install student-crud ./helm/student-crud \
-          --set backend.image.repository=${{ secrets.DOCKER_HUB_USERNAME }}/student-crud-backend \
-          --set frontend.image.repository=${{ secrets.DOCKER_HUB_USERNAME }}/student-crud-frontend
+          --set backend.image.repository=${{ env.DOCKER_HUB_REPO }}-backend \
+          --set frontend.image.repository=${{ env.DOCKER_HUB_REPO }}-frontend \
+          --atomic --wait

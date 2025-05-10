@@ -1,0 +1,30 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-grafana
+  labels:
+    {{- include "student-crud.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "student-crud.labels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "student-crud.labels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: grafana
+        image: {{ .Values.monitoring.grafana.image.repository }}:{{ .Values.monitoring.grafana.image.tag }}
+        ports:
+        - containerPort: 3000
+        volumeMounts:
+        - name: grafana-datasources
+          mountPath: /etc/grafana/provisioning/datasources
+      volumes:
+      - name: grafana-datasources
+        configMap:
+          name: {{ .Release.Name }}-grafana-datasources
+{{- end }}

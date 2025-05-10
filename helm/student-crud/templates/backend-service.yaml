@@ -6,7 +6,15 @@ spec:
   type: {{ .Values.backend.service.type }}
   selector:
     app: {{ .Release.Name }}-backend
+  {{- if eq .Values.backend.service.type "NodePort" }}
   ports:
     - protocol: TCP
       port: {{ .Values.backend.service.port }}
       targetPort: {{ .Values.backend.service.port }}
+      nodePort: {{ .Values.backend.service.nodePort }}
+  {{- else }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.backend.service.port }}
+      targetPort: {{ .Values.backend.service.port }}
+  {{- end }}

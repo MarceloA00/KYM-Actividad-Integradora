@@ -4,16 +4,17 @@ backend:
   image:
     repository: student-crud-backend
     tag: latest
-    pullPolicy: IfNotPresent
+    pullPolicy: Never
   service:
-    type: ClusterIP
+    type: NodePort
     port: 3000
+    targetPort: 3000
 
 frontend:
   image:
     repository: student-crud-frontend
     tag: latest
-    pullPolicy: IfNotPresent
+    pullPolicy: Never
   service:
     type: NodePort
     port: 80
@@ -26,7 +27,28 @@ mongodb:
     tag: 4.4
   auth:
     rootUser: admin
-    rootPassword: admin123
+    rootPassword: password
   persistence:
     enabled: true
     size: 1Gi
+
+monitoring:
+  enabled: true
+  
+  grafana:
+    image:
+      repository: grafana/grafana
+      tag: 9.5.3
+    service:
+      type: NodePort
+      port: 3000
+      nodePort: 30300
+  
+  prometheus:
+    image:
+      repository: prom/prometheus
+      tag: v2.47.0
+    service:
+      type: NodePort
+      port: 9090
+      nodePort: 30900

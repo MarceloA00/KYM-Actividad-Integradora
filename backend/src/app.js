@@ -4,15 +4,31 @@ const cors = require('cors');
 const studentRoutes = require('./routes/students');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+    origin: [
+        'http://student-crud-frontend',
+        'http://localhost:30080',
+        'http://127.0.0.1:30080',
+        /\.minikube\.local$/,  // For minikube tunnel
+        /^http:\/\/192\.168\.\d+\.\d+:\d+$/  // Minikube IP
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type'],
+    credentials: true
+}));
 app.use(express.json());
 
 // Conexión a MongoDB
-mongoose.connect('mongodb://mongodb:27017/studentsdb', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-});
-
+mongoose.connect('mongodb://admin:password@student-crud-mongodb:27017/studentsdb?authSource=admin', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000
+  })
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => {
+    console.error('MongoDB connection error:', err);
+    process.exit(1); // Exit if DB connection fails
+  });
 // Rutas
 app.use('/api/students', studentRoutes);
 
