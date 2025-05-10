@@ -29,18 +29,6 @@ jobs:
         run: |
           npm test
 
-  # build-test-frontend:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: actions/checkout@v3
-  #   - uses: actions/setup-node@v3
-  #     with:
-  #       node-version: '16'
-  #   - working-directory: ./frontend
-  #     run: npm ci
-  #   - working-directory: ./frontend
-  #     run: npm test
-
   build-docker-images:
     needs: [build-test-backend, build-test-frontend]
     runs-on: ubuntu-latest
