@@ -39,8 +39,11 @@
   "jest": {
     "testEnvironment": "jsdom",
     "setupFilesAfterEnv": [
-      "<rootDir>/tests/setup.js"
+      "<rootDir>/src/setupTests.js"
     ],
+    "testEnvironmentOptions": {
+      "url": "http://localhost"
+    },
     "moduleNameMapper": {
       "\\.(css|less|scss|sass)$": "identity-obj-proxy"
     }

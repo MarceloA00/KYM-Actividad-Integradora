@@ -5,10 +5,13 @@ module.exports = async function() {
   const mongoServer = await MongoMemoryServer.create();
   const uri = mongoServer.getUri();
   
-  mongoose.set('strictQuery', false);
-  await mongoose.connect(uri);
+  process.env.MONGO_URI = uri;
   
-  // Store references for teardown
+  mongoose.set('strictQuery', false);
+  await mongoose.connect(uri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  });
+  
   global.__MONGOD__ = mongoServer;
-  global.__MONGOOSE__ = mongoose;
 };

@@ -15,15 +15,18 @@ jobs:
         ports:
           - 27017:27017
         options: --health-cmd "mongosh --eval 'db.serverStatus()'" --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      MONGO_URI: mongodb://localhost:27017/testdb
+      NODE_ENV: test
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-node@v3
-      with:
-        node-version: '16'
-    - working-directory: ./backend
-      run: npm ci
-    - working-directory: ./backend
-      run: npm test
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      - working-directory: ./backend
+        run: npm ci
+      - working-directory: ./backend
+        run: npm test
 
   build-test-frontend:
     runs-on: ubuntu-latest
