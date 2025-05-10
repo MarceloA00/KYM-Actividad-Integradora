@@ -1,18 +1,18 @@
-FROM node:14-alpine
+FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package files first for better caching
 COPY package*.json ./
 
-# Install dependencies (including devDependencies)
-RUN npm install
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
 
-# Copy all other files
+RUN if [ "$NODE_ENV" = "development" ]; \
+    then npm install; \
+    else npm install --only=production; \
+    fi
+
 COPY . .
-
-# Build your app if needed
-# RUN npm run build
 
 EXPOSE 3000
 
