@@ -9,12 +9,6 @@ on:
 jobs:
   build-test-backend:
     runs-on: ubuntu-latest
-    services:
-      mongodb:
-        image: mongo:5.0
-        ports:
-          - 27017:27017
-        options: --health-cmd "mongosh --eval 'db.serverStatus()'" --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
@@ -24,8 +18,6 @@ jobs:
       run: npm ci
     - working-directory: ./backend
       run: npm test
-      env:
-        NODE_ENV: test
 
   build-test-frontend:
     runs-on: ubuntu-latest

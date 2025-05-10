@@ -22,6 +22,11 @@ afterEach(() => {
 });
 
 describe('App Component', () => {
+  test('renders student CRUD title', () => {
+    render(<App />);
+    expect(screen.getByText('CRUD de Estudiantes')).toBeInTheDocument();
+  });
+  
   it('renders the student CRUD title', () => {
     render(<App />);
     expect(screen.getByText('CRUD de Estudiantes')).toBeInTheDocument();
