@@ -30,7 +30,7 @@ jobs:
           npm test
 
   build-docker-images:
-    needs: [build-test-backend, build-test-frontend]
+    needs: [build-test-backend]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
