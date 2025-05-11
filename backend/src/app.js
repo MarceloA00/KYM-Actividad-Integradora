@@ -9,8 +9,8 @@ app.use(cors({
         'http://student-crud-frontend',
         'http://localhost:30080',
         'http://127.0.0.1:30080',
-        /\.minikube\.local$/,  // For minikube tunnel
-        /^http:\/\/192\.168\.\d+\.\d+:\d+$/  // Minikube IP
+        /\.minikube\.local$/,
+        /^http:\/\/192\.168\.\d+\.\d+:\d+$/
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type'],
@@ -18,7 +18,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Conexión a MongoDB
+
 if (process.env.NODE_ENV !== 'test' && mongoose.connection.readyState === 0) {
 mongoose.connect('mongodb://admin:password@student-crud-mongodb:27017/studentsdb?authSource=admin', {
     useNewUrlParser: true,
@@ -28,13 +28,12 @@ mongoose.connect('mongodb://admin:password@student-crud-mongodb:27017/studentsdb
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => {
     console.error('MongoDB connection error:', err);
-    process.exit(1); // Exit if DB connection fails
+    process.exit(1);
   });
 }
-// Rutas
 app.use('/api/students', studentRoutes);
 
-// Health check
+
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'UP' });
 });

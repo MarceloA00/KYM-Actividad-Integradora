@@ -7,7 +7,7 @@ afterEach(() => {
   cleanup();
 });
 
-// Mock the fetch API
+
 beforeEach(() => {
   global.fetch = jest.fn(() =>
     Promise.resolve({
@@ -26,7 +26,7 @@ describe('App Component', () => {
     render(<App />);
     expect(screen.getByText('CRUD de Estudiantes')).toBeInTheDocument();
   });
-  
+
   it('renders the student CRUD title', () => {
     render(<App />);
     expect(screen.getByText('CRUD de Estudiantes')).toBeInTheDocument();
@@ -56,7 +56,7 @@ describe('App Component', () => {
   it('submits the form to add a new student', async () => {
     render(<App />);
     
-    // Mock the fetch for getting students after adding
+  
     global.fetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: true,
@@ -64,18 +64,17 @@ describe('App Component', () => {
       })
     );
     
-    // Fill out the form
+
     fireEvent.change(screen.getByPlaceholderText('Nombre'), { target: { value: 'John Doe' } });
     fireEvent.change(screen.getByPlaceholderText('Edad'), { target: { value: '20' } });
     fireEvent.change(screen.getByPlaceholderText('Grado'), { target: { value: 'A' } });
     fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'john@example.com' } });
-    
-    // Submit the form
+
     fireEvent.click(screen.getByText('Agregar'));
     
-    // Wait for the mock fetch to be called
+
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledTimes(2); // Initial load + after submit
+      expect(global.fetch).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -84,7 +83,7 @@ describe('App Component', () => {
       { _id: '1', name: 'John Doe', age: 20, grade: 'A', email: 'john@example.com' }
     ];
     
-    // Mock initial fetch
+
     global.fetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: true,
@@ -94,22 +93,22 @@ describe('App Component', () => {
     
     render(<App />);
     
-    // Wait for students to load
+
     await waitFor(() => {
       expect(screen.getByText('John Doe')).toBeInTheDocument();
     });
     
-    // Click edit button
+
     fireEvent.click(screen.getByText('Editar'));
     
-    // Check if form is populated
+
     expect(screen.getByPlaceholderText('Nombre').value).toBe('John Doe');
     expect(screen.getByText('Actualizar')).toBeInTheDocument();
     
-    // Change the name
+
     fireEvent.change(screen.getByPlaceholderText('Nombre'), { target: { value: 'John Updated' } });
     
-    // Mock the update response
+
     global.fetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: true,
@@ -117,7 +116,7 @@ describe('App Component', () => {
       })
     );
     
-    // Mock the fetch for getting updated students
+
     global.fetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: true,
@@ -125,10 +124,10 @@ describe('App Component', () => {
       })
     );
     
-    // Submit the update
+
     fireEvent.click(screen.getByText('Actualizar'));
     
-    // Wait for the update to complete
+
     await waitFor(() => {
       expect(screen.getByText('John Updated')).toBeInTheDocument();
     });
@@ -139,7 +138,7 @@ describe('App Component', () => {
       { _id: '1', name: 'John Doe', age: 20, grade: 'A', email: 'john@example.com' }
     ];
     
-    // Mock initial fetch
+
     global.fetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: true,
@@ -149,12 +148,12 @@ describe('App Component', () => {
     
     render(<App />);
     
-    // Wait for students to load
+
     await waitFor(() => {
       expect(screen.getByText('John Doe')).toBeInTheDocument();
     });
     
-    // Mock the delete response
+
     global.fetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: true,
@@ -162,7 +161,7 @@ describe('App Component', () => {
       })
     );
     
-    // Mock the fetch for getting students after delete
+
     global.fetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: true,
@@ -170,10 +169,10 @@ describe('App Component', () => {
       })
     );
     
-    // Click delete button
+
     fireEvent.click(screen.getByText('Eliminar'));
     
-    // Wait for the student to be removed
+
     await waitFor(() => {
       expect(screen.queryByText('John Doe')).not.toBeInTheDocument();
     });

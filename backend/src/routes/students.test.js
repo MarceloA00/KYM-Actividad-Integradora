@@ -106,7 +106,7 @@ describe('Student Routes', () => {
       
       expect(response.body.name).toBe(updates.name);
       expect(response.body.age).toBe(updates.age);
-      expect(response.body.grade).toBe(student.grade); // unchanged field
+      expect(response.body.grade).toBe(student.grade);
     });
   });
 
