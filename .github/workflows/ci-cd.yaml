@@ -54,24 +54,54 @@ jobs:
         docker push ${{ secrets.DOCKER_HUB_USERNAME }}/student-crud-frontend:latest
 
   deploy-to-kubernetes:
-    needs: build-docker-images
-    runs-on: ubuntu-latest
-    steps:
+  needs: build-docker-images
+  runs-on: ubuntu-latest
+  steps:
     - uses: actions/checkout@v3
     
+    - name: Install Minikube and dependencies
+      run: |
+        sudo apt-get update -q
+        sudo apt-get install -qy conntrack
+        curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        sudo install minikube-linux-amd64 /usr/local/bin/minikube
+        
+    - name: Start Minikube cluster
+      run: |
+        minikube start --driver=docker --force
+        minikube addons enable ingress
+        
     - name: Install kubectl
       uses: azure/setup-kubectl@v3
       with:
         version: 'latest'
-    
+        
     - name: Install Helm
       uses: azure/setup-helm@v3
       with:
         version: 'latest'
-    
-    - name: Deploy to Kubernetes
+        
+    - name: Configure Docker to use Minikube's daemon
+      run: |
+        eval $(minikube docker-env)
+        echo "DOCKER_HOST=$(minikube docker-env | grep DOCKER_HOST | cut -d '=' -f 2)" >> $GITHUB_ENV
+        echo "DOCKER_CERT_PATH=$(minikube docker-env | grep DOCKER_CERT_PATH | cut -d '=' -f 2)" >> $GITHUB_ENV
+        echo "DOCKER_TLS_VERIFY=$(minikube docker-env | grep DOCKER_TLS_VERIFY | cut -d '=' -f 2)" >> $GITHUB_ENV
+        
+    - name: Build images in Minikube's Docker
+      run: |
+        cd backend && docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/student-crud-backend:latest .
+        cd ../frontend && docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/student-crud-frontend:latest .
+        
+    - name: Deploy to Minikube
       run: |
         helm upgrade --install student-crud ./helm/student-crud \
           --set backend.image.repository=${{ secrets.DOCKER_HUB_USERNAME }}/student-crud-backend \
           --set frontend.image.repository=${{ secrets.DOCKER_HUB_USERNAME }}/student-crud-frontend \
           --atomic --wait
+          
+    - name: Verify deployment
+      run: |
+        kubectl get pods -n default
+        kubectl get svc -n default
+        minikube service list
